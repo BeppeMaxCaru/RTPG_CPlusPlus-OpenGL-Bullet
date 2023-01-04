@@ -5,8 +5,8 @@ using namespace std;
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <bullet/btBulletDynamicsCommon.h>
-#include <bullet/BulletSoftBody/btSoftBody.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletSoftBody/btSoftBody.h>
 
 #include "../utilsV2/MeshV2.h"
 

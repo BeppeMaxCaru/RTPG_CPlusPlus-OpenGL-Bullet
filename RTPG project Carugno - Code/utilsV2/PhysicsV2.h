@@ -1,8 +1,8 @@
-#include <bullet/btBulletDynamicsCommon.h>
-#include <bullet/BulletSoftBody/btSoftRigidDynamicsWorld.h>
-#include <bullet/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
-#include <bullet/BulletSoftBody/btDefaultSoftBodySolver.h>
-#include <bullet/BulletSoftBody/btSoftBodyHelpers.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
+#include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
+#include <BulletSoftBody/btDefaultSoftBodySolver.h>
+#include <BulletSoftBody/btSoftBodyHelpers.h>
 
 class PhysicsV2
 {

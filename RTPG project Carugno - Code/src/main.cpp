@@ -8,31 +8,42 @@
 
 #include "../utilsV2/PhysicsV2.h"
 
-//Function declaration
+/////////////////////////////////////////////////////////
+//Functions declarations
+
+//Link functions to GLFWindow
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+//Render soft body
 void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3 softBodyColor);
 
-//NEW
+//Generate mesh
 MeshV2 getSoftBodyMesh(btSoftBody* softBody, glm::vec3 softBodyColor);
 
+/////////////////////////////////////////////////////////
+//Setup values
 
-// settings
+//Screen settings
 const GLuint SCR_WIDTH = 1200;
 const GLuint SCR_HEIGHT = 600;
 
-// parameters for time calculation (for animations)
+//Time calculation
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-//NEW
+//Soft bodies physics class
 PhysicsV2 physics;
 
+//Soft bodies attributes to generate and render them
 vector<MeshV2> generatedSoftBodiesMeshes;
 vector<glm::vec3> softBodiesColours;
 
+//Main function
 int main() {
+
+    ////////////////////////////////////////////////////
+    //OpenGL preliminary operations (version, window, context, ecc.)
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -60,59 +71,52 @@ int main() {
     gladLoadGL();
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-
-
     ////////////////////////////////////////////////////
+    //Shader setup
 
+    //Read vertex and fragment shaders
+    //Generate and link shader program
     Shader shaderProgram("Shaders/basic.vert", "Shaders/basic.frag");
 
     //////////////////////////////////////////////////////
+    //Application loading
 
+    //Enable depth test
     glEnable(GL_DEPTH_TEST);
 
+    //Create camera in starting position
     CamV2 CamV2(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
     //Import models at the start
-    //Simpler models
+    //Simple models
     ModelV2 planeModel("models/cube.obj");
     ModelV2 cubeModel("models/cube.obj");
     ModelV2 sphereModel("models/sphere.obj");
     //More complex models
+    //Longer loading times
     //ModelV2 bunnyModel("models/bunny_lp.obj");
     //ModelV2 yodaModel("models/babyyoda.obj");
 
-    /////////////////////////////
+    /////////////////////////////////////////////////////////
+    //Bullet setup
+
     //Setup simulated world
     physics.setupPhysics();
 
-    //Works + rigid bodies
+    //Generate world plane
     glm::vec3 planeScale = glm::vec3(50.0f, 0.1f, 50.0f);
     btRigidBody* plane = physics.genWorldPlane(planeScale, 0.0f);
 
-
-
-
-    /////////////////////////////////////////////////
-
-    //GenV3 now working correctly!
-    // genSoftSphereV3 worked correctly
-    // We just split it by moving the procedure that merges meshes into
-    // the Model conostructor so as soon as the model is imported also the unique mesh
-    // is generated.
-    // The part instead where we actually generate the soft body has been 
-    // refactored as the function generateSoftBodyFromModel so that it doesn't have to generate
-    // again the unique mesh but it can simply take a model and from it generate the corresponding
-    // soft body!
-
-    //This version is V4 and includes optimization and refactoring
-    //softTest = physics.generateSoftBodyTest(sphereModel);
-
     ///////////////////////////////////////////////////
+    //Time steps
 
-    // we set the maximum delta time for the update of the physical simulation
+    //Set the maximum delta time for the update of the physical simulation
     GLfloat maxSecPerFrame = 1.0f / 60.0f;
 
     //////////////////////////////////////////////////////////
+    //GUI
+
+    //GUI setup
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -120,8 +124,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 410 core");
 
-    //ImGui parameters for generating soft bodies!
-
+    //GUI parameters collection for generating soft bodies!
     static int selectedModel = NULL;
     vector<const char*> availableModels = { "Cube", "Sphere" };
 
@@ -159,25 +162,24 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        //Unlink mouse from OpenGL window when I'm above the gui window
+        //Unlink mouse from OpenGL window when I'm above the GUI window
         if (!io.WantCaptureMouse)
         {
             CamV2.Inputs(window);
         }
 
-        //Simulation steps
+        //Step simulation forward
         physics.world->stepSimulation((deltaTime < maxSecPerFrame ? deltaTime : maxSecPerFrame), 10);
 
+        //Activate shader program
         shaderProgram.Use();
 
         //CamV2.Inputs(window);
-        // Updates and exports the camera matrix to the Vertex Shader
+        //Updates and exports the camera matrix to the Vertex Shader
         CamV2.updateMatrix(45.0f, 0.1f, 1000.0f);
-
 
         /////////////////////////////////////////////////////////
 
-        //Funzionaaaaaaaaaaaaaaaaaaaa!!!!!!!!!!!!!!!!!!!!!!!!!
         //Static world plane
         btTransform t;
         plane->getMotionState()->getWorldTransform(t);
@@ -187,42 +189,43 @@ int main() {
             planeScale);
         //cout << planeModel.meshes.size() << "piano" << endl;
 
-        ///////////////////////////////////////
+        /////////////////////////////////////////////
+        //GUI
+        
         //Helper
         //ImGui::ShowDemoWindow();
 
+        //Start GUI
         ImGui::Begin("Soft bodies generator");
 
-        //Here there are the widgets for the gui
+        //Here there are the GUI widgets
 
         //Select model
         ImGui::Combo("Model", &selectedModel, availableModels.data(), availableModels.size());
         //Position
         ImGui::InputFloat3("Position", position, "%.2f");
-        //Rotation
-        //ImGui::InputFloat3("Rotation", rotation, "%.2f");
+        //Rotations
         ImGui::SliderFloat("Yaw", &rotation[0], -180.0f, 180.0f, "%.2f", 0);
         ImGui::SliderFloat("Pitch", &rotation[1], -90.0f, 90.0f, "%.2f", 0);
         ImGui::SliderFloat("Roll", &rotation[2], -180.0f, 180.0f, "%.2f", 0);
-        //Scale
-        //ImGui::DragFloat3("Scale", scale, 0.005f, 0.0f, FLT_MAX, "%.2f", 0);
-        //Colours -> at the moment no way to assign a color to each soft body
+        //Colour selection
         ImGui::ColorEdit3("Color", color, ImGuiColorEditFlags_Float);
         //Mass
         ImGui::DragFloat("Mass", &mass, 0.005f, 0.0f, FLT_MAX, "%.2f", 0);
-        //Soft body internal pressure
+        //Internal pressure
         ImGui::DragFloat("Internal pressure", &internalPressure, 0.005f, 0.0f, FLT_MAX, "%.2f", 0);
         
         //When clicked spawn new body
         generate = ImGui::Button("Generate");
 
+        //Stop accepting inputs
         ImGui::End();
 
+        //GUI rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        //OK
-        //Generate a soft body using all parameters passed to the gui when generate is true
+        //Generate a soft body using all parameters passed to the GUI when generate is true
         if (generate == true) cout << "button pressed" << endl;
         if (generate == true)
         {
@@ -238,62 +241,58 @@ int main() {
             //Retrieve soft body mesh
             MeshV2 softBodyMesh = getSoftBodyMesh(softBody, glm::make_vec3(color));
             generatedSoftBodiesMeshes.push_back(softBodyMesh);
-            cout << generatedSoftBodiesMeshes.size() << " new vec!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
         }
-
 
         //Switch generate to false otherwise bodies keep being generated!
         generate = false;
 
         /////////////////////////////////////////////////////////////////////
         //Frame rate evaluation
-        // Calculate the elapsed time
+        //Calculate elapsed time
         auto elapsedTime = std::chrono::high_resolution_clock::now() - startTime;
         startTime = std::chrono::high_resolution_clock::now();
-        // Calculate the frame rate
+        //Calculate frame rate
         double frameRate = 1.0 / std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime).count();
-        // Print the frame rate
+        //Print the frame rate
         std::cout << "Frame rate: " << frameRate << std::endl;
 
-        ///////////////////////////////////////////////////////////////////////
-        //Depending on GUI selection do stuff
+        //////////////////////////////////////////////////////////////////////
+        //Rendering
 
         //Soft bodies only (to speed up development)
-        
         for (int i = 0; i < physics.world->getSoftBodyArray().size(); i++)
         {
             btSoftBody* softBodyToDraw = physics.world->getSoftBodyArray()[i];
             drawSoftBody(shaderProgram, CamV2, *softBodyToDraw, softBodiesColours[i]);
         }
 
-        /*
-        for (int i = 0; i < physics.world->getSoftBodyArray().size(); i++)
-        {
-            generatedSoftBodiesMeshes[i] = getSoftBodyMesh(physics.world->getSoftBodyArray()[i], softBodiesColours[i]);
-            generatedSoftBodiesMeshes[i].Draw(shaderProgram, CamV2);
-        }
-        */
-
         ///////////////////////////////
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    /////////////////////////////////////////////////////////
+
+    //Free resources
+    //GUI
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
+    //Shader program
     shaderProgram.Delete();
 
+    //Physics
     physics.deletePhysics();
 
+    //OpenGL
     glfwDestroyWindow(window);
     glfwTerminate();
+    
     return 0;
 
 }
 
-//OK
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow* window)
@@ -306,7 +305,6 @@ void processInput(GLFWwindow* window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-//OK
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -316,15 +314,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-//Identica a DrawSoftV2
+//Rendering function
 void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3 softBodyColor)
 {
-    //Ricostruisco vertici e indici del soft body
+    //Get soft body vertices
     vector<Vertex> softVertices;
-    //Mappa i vertici
+    //Map vertices
     unsigned int index = 0;
 
-    //Indici dei vertici ricavati correttamente usando la mappa
+    //Recover soft body indices using mapping (since soft bodies in Bullet do not have them)
     vector<GLuint> softIndices;
 
     //Reserve size to save time and avoid reallocations
@@ -332,10 +330,8 @@ void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3
     softIndices.reserve(softBody.m_faces.size() * 3);
 
 
-    //Recupero tutte le componenti di ciascun vertice del soft body
-    //PASSANDO DAI NODI, NON DALLE FACCE!!!!!!!!!
-    //Fatto!
-    //Adesso serve merge dei vertici!!!!!!!!!!!
+    //Get soft body vertices
+    //BY ITERATING OVER NODES; NOT FACES!!!!!
     for (unsigned int i = 0; i < softBody.m_nodes.size(); i++)
     {
         Vertex vertex;
@@ -356,11 +352,10 @@ void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3
 
         //Create vertices list
         softVertices.push_back(vertex);
-        //Prepare indexing
-        //Insert node and corresponding assigned index
 
     }
 
+    //Get soft body indices
     unsigned int numNodes = softBody.m_nodes.size();
 
     for (unsigned int i = 0; i < softBody.m_faces.size(); i++)
@@ -380,11 +375,12 @@ void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3
         }
     }
 
-    //OFFICIAL VERSION
+    //V1
     //Li passo alla GPU per disegnare il softbody
     //MeshV2 mesh(softVertices, softIndices);
     //mesh.Draw(shader, camera);
 
+    //V2
     MeshV2 mesh2(softVertices, softIndices, 0);
     mesh2.drawV2(shader, camera);
 
@@ -392,23 +388,22 @@ void drawSoftBody(Shader& shader, CamV2& camera, btSoftBody& softBody, glm::vec3
 
 MeshV2 getSoftBodyMesh(btSoftBody* softBody, glm::vec3 softBodyColor)
 {
-    //Ricostruisco vertici e indici del soft body
+    //Get soft body vertices
     vector<Vertex> softVertices;
-    //Mappa i vertici
+    //Vertices mapping
     unsigned int index = 0;
 
-    //Indici dei vertici ricavati correttamente usando la mappa
+    //Build indices correctly using the mapping (since missing in the Bullet soft body)
     vector<GLuint> softIndices;
 
     //Reserve size to save time and avoid reallocations
     softVertices.reserve(softBody->m_nodes.size());
     softIndices.reserve(softBody->m_faces.size() * 3);
 
+    //Recover soft body vertices components
+    //DO IT OVER THE NODES, NOT THE FACES!!!!!
 
-    //Recupero tutte le componenti di ciascun vertice del soft body
-    //PASSANDO DAI NODI, NON DALLE FACCE!!!!!!!!!
-    //Fatto!
-    //Adesso serve merge dei vertici!!!!!!!!!!!
+    //Get vertices
     for (unsigned int i = 0; i < softBody->m_nodes.size(); i++)
     {
         Vertex vertex;
@@ -434,6 +429,7 @@ MeshV2 getSoftBodyMesh(btSoftBody* softBody, glm::vec3 softBodyColor)
 
     }
 
+    //Get indices
     unsigned int numNodes = softBody->m_nodes.size();
 
     for (unsigned int i = 0; i < softBody->m_faces.size(); i++)

@@ -28,11 +28,8 @@ public:
 		//Load model from .obj file
 		loadModel(path);
 
-
 		////////////////////////////////////////////////////////
-		//Testing
-		// 
-		//Merge the meshes into one unique mesh
+		//Merge the meshes into one unique mesh to improve performance at runtime
 		//Doing it here exactly when loading the model saves computing time later
 		//Complexity O(n^2)
 		mergeMeshes(meshes, &vertices, &indices);
@@ -42,8 +39,7 @@ public:
 
 private:
 
-	//Potrei aggiungiure combine mesh direttamente dopo loadModel nel costruttore
-	//così da avere unica mesh per ogni modello importato pronta subito!
+	//Model loading using recursion
 	void loadModel(string path)
 	{
 		Assimp::Importer importer;
@@ -59,21 +55,20 @@ private:
 
 	}
 
-	//Ok
 	void processNode(aiNode* node, const aiScene* scene) {
-		// process all the node's meshes (if any)
+		//Process all the node's meshes (if any)
 		for (GLuint i = 0; i < node->mNumMeshes; i++)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			meshes.emplace_back(processMesh(mesh));
 		}
-		// then do the same for each of its children
+		//Then do the same for each of its children
 		for (GLuint i = 0; i < node->mNumChildren; i++)
 		{
 			processNode(node->mChildren[i], scene);
 		}
 	}
-	//OK
+	
 	MeshV2 processMesh(aiMesh* mesh) {
 		vector<Vertex> vertices;
 		vector<GLuint> indices;
@@ -83,12 +78,12 @@ private:
 			Vertex vertex{};
 
 			glm::vec3 vector;
-			// vertices coordinates
+			//Vertices coordinates
 			vector.x = mesh->mVertices[i].x;
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
 			vertex.Position = vector;
-			// Normals
+			//Normals
 			vector.x = mesh->mNormals[i].x;
 			vector.y = mesh->mNormals[i].y;
 			vector.z = mesh->mNormals[i].z;
@@ -100,7 +95,7 @@ private:
 			vertices.emplace_back(vertex);
 		}
 
-		// for each face of the mesh, we retrieve the indices of its vertices , and we store them in a vector data structure
+		//For each face of the mesh, we retrieve the indices of its vertices , and we store them in a vector data structure
 		for (GLuint i = 0; i < mesh->mNumFaces; i++)
 		{
 			aiFace face = mesh->mFaces[i];
@@ -108,28 +103,22 @@ private:
 				indices.emplace_back(face.mIndices[j]);
 		}
 
-		// we return an instance of the Mesh class created using the vertices and faces data structures we have created above.
+		//We return an instance of the Mesh class created using the vertices and faces data structures we have created above.
 		return MeshV2(vertices, indices);
 
 	}
 
-
-
 	///////////////////////////////////////////////////////////////
-	// Test
-	//Function to merge meshes
+	//Function to merge meshes into a unique one
 	//Complexity is O(n^2)
 	void mergeMeshes(vector<MeshV2> meshes, vector<btVector3>* verts, vector<GLuint>* indxs)
 	{
-		//IT WORKSSSSSSSSSSSSSS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		//For a cube 8 vertices and 36 indices!
-
 		vector<btVector3> vertices;
 		vector<GLuint> indices;
 
-		// Mapping between the indices in the allVertices vector and the indices in the vertices vector
-
+		//Mapping between the indices of the old vertices vector and the indices of the new vertices vector
 		for (unsigned int i = 0; i < meshes.size(); i++)
 		{
 			// Loop through the indices of the current mesh
@@ -148,7 +137,7 @@ private:
 						break;
 					}
 				}
-				// If the vertex was not found in the combined vertices array, add it
+				//If the vertex was not found in the combined vertices array, add it
 				if (index == -1)
 				{
 					btVector3 vertex(
@@ -160,7 +149,7 @@ private:
 					index = vertices.size() - 1;
 				}
 
-				// Add the index of the vertex to the combined indices array
+				//Add the index of the vertex to the combined indices array
 				indices.push_back(index);
 
 				cout << "Merging index " << j << " of mesh " << i << endl;
@@ -177,6 +166,6 @@ private:
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	//To achieve complexity O(n) an unoerder map must be used!
+	//To achieve complexity O(n) an unorderep map must be used!
 
 };

@@ -81,6 +81,7 @@ public:
 
 	}
 
+	//Create world plane aside from other bodies
 	btRigidBody* genWorldPlane(glm::vec3 scale, btScalar mass)
 	{
 		btVector3 pos = btVector3(0.0f, -3.0f, 0.0f);
@@ -119,7 +120,7 @@ public:
 
 	}
 
-	//Final versions
+	//Final versions for rigid and soft bodies
 	void generateRigidBody(glm::vec3 position, glm::vec3 rotation)
 	{
 		//Initialize body transform
@@ -136,11 +137,9 @@ public:
 
 	}
 
+	//Handle the correct spawning of the soft body
 	btSoftBody* generateSoftBodyTest(
-		//Meshes of the soft body
 		ModelV2 model,
-		//,
-		//OK
 		float position[3],
 		float rotation[3],
 		float scale[3],
@@ -149,11 +148,9 @@ public:
 	)
 	{
 
-		//OK
 		//Generate the soft body
 		btSoftBody* softBody = generateSoftBodyFromModel(model);
 
-		//OK
 		//Initialize body transform
 		btTransform transform;
 		transform.setIdentity();
@@ -170,7 +167,7 @@ public:
 
 		//Set the soft body scale
 		//btVector3 scaling(scale[0], scale[1], scale[2]);
-		//Set the soft body scale -> Rallenta tanto la simulazione!
+		//Set the soft body scale -> Rallenta tanto la simulazione + soft solver diventa estremamente impreciso!
 		//softBody->scale(scaling);
 
 		//Set the soft body internal pressure
@@ -184,7 +181,8 @@ public:
 
 	}
 
-	//This one + combines meshes seems to be working correctly
+
+	//Given a model generate its corresponding soft body
 	btSoftBody* generateSoftBodyFromModel(ModelV2 model)
 	{
 
@@ -236,7 +234,5 @@ public:
 		return body;
 
 	}
-
-private:
 
 };

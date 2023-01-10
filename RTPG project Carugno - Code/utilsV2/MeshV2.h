@@ -19,7 +19,10 @@ public:
     //VBO VBO;
     //EBO EBO;
 
-    
+    //////////////////////////////////////////////////////////////
+    //V1
+
+    //Mesh constructor
     MeshV2(vector<Vertex>& vertices, vector<GLuint>& indices) //: VBO(vertices), EBO(indices)
     {
 
@@ -39,11 +42,10 @@ public:
         //
         VBO.Unbind();
         EBO.Unbind();
-        
 
     }
     
-
+    //Mesh rendering
     void Draw(Shader& shader, CamV2& camera, 
         glm::mat4 matrix = glm::mat4(1.0f),
         glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f), 
@@ -79,7 +81,8 @@ public:
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
-    //Updated version
+    //Updated, improved and optimized version
+    
     //V2
     MeshV2(vector<Vertex>& vertices, vector<GLuint>& indices, int dummy)
     {
@@ -87,36 +90,35 @@ public:
         this->indices = indices;
     }
 
-
     void drawV2(Shader& shader, CamV2& camera,
         glm::mat4 matrix = glm::mat4(1.0f),
         glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f),
         glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f))
     {
-        // Create a VAO and bind it
+        //Create a VAO and bind it
         VAO;
         VAO.Bind();
 
-        // Create a VBO and bind it
+        //Create a VBO and bind it
         VBO vbo(vertices);
         vbo.Bind();
 
-        // Create an EBO and bind it
+        //Create an EBO and bind it
         EBO ebo(indices);
         ebo.Bind();
 
-        // Set the vertex attribute pointers for the VBO
+        //Set the vertex attribute pointers for the VBO
         VAO.LinkAttribute(vbo, 0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
         VAO.LinkAttribute(vbo, 1, 3, GL_FLOAT, sizeof(Vertex), (void*)(3 * sizeof(float)));
         VAO.LinkAttribute(vbo, 2, 3, GL_FLOAT, sizeof(Vertex), (void*)(6 * sizeof(float)));
 
-        // Unbind the VAO, VBO, and EBO
+        //Unbind the VAO, VBO, and EBO
         VAO.Unbind();
         vbo.Unbind();
         ebo.Unbind();
 
-        // Use the shader program and bind the VAO
+        //Use the shader program and bind the VAO
         shader.Use();
         VAO.Bind();
 
@@ -141,13 +143,13 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"),
             1, GL_FALSE, glm::value_ptr(matrix));
 
-        // Draw the mesh using the indices stored in the EBO
+        //Draw the mesh using the indices stored in the EBO
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-        // Unbind the VAO
+        //Unbind the VAO
         VAO.Unbind();
 
-        // Delete the VAO, VBO, and EBO to clean up resources
+        //Delete the VAO, VBO, and EBO to clean up resources
         VAO.Delete();
         vbo.Delete();
         ebo.Delete();

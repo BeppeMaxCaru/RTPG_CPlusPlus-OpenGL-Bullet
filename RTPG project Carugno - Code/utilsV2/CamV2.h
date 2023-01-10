@@ -7,7 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
@@ -29,6 +28,7 @@ public:
 	float speed = 0.1f;
 	float sensitivity = 100.0f;
 
+	//Cam constructor
 	CamV2(int width, int height, glm::vec3 position)
 	{
 		this->width = width;
@@ -36,6 +36,7 @@ public:
 		this->Position = position;
 	};
 
+	//Used to update camera
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 	{
 		glm::mat4 view = glm::mat4(1.0f);
@@ -48,12 +49,14 @@ public:
 		cameraMatrix = projection * view;
 	}
 
+	//Used for rendering camera
 	void Matrix(Shader& shader, const char* uniform)
 	{
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, uniform),
 			1, GL_FALSE, glm::value_ptr(cameraMatrix));
 	}
 
+	//Collect inputs
 	void Inputs(GLFWwindow* window)
 	{
 		//WASD
@@ -66,21 +69,13 @@ public:
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 			Position += speed * glm::normalize(glm::cross(Orientation, Up));
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		{
-			Position += speed * Up;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-		{
-			Position += speed * -Up;
-		}
-
-		//
+		//Speed
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 			Position += speed * Up;
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 			Position += speed * -Up;
 
+		//Cursor
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) 
 		{
 

@@ -48,3 +48,11 @@ Soft bodies simulation using OpenGL graphics engine and Bullet Physics physics e
     - Delete shader program
     - Delete physics simulation
     - Delete OpenGL window and context
+
+## Relevent design choices
+
+- Camera.
+- Soft bodies generation.
+- Merging of meshes.
+- GUI.
+- Soft bodies drawing.
